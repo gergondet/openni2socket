@@ -2,9 +2,12 @@
 
 inline void rgb24_to_rgba(unsigned char * rgb24_buffer, unsigned int nb_pixels, unsigned char * rgba_buffer)
 {
-    for(unsigned int i = nb_pixels - 1; i >= 0; --i)
+    for(unsigned int i = nb_pixels; i > 0; --i)
     {
-        memcpy(&(rgba_buffer[4*i]), &(rgb24_buffer[3*i]), 3);
+        memcpy(&(rgba_buffer[4*(i-1)]), &(rgb24_buffer[3*(i-1)]), 3);
+        rgba_buffer[4*i+3] = rgba_buffer[4*i];
+        rgba_buffer[4*i] = rgba_buffer[4*i+2];
+        rgba_buffer[4*i+2] = rgba_buffer[4*i+3];
     }
 }
 
@@ -61,7 +64,7 @@ void OpenNI2Socket::EncodeAndSendFrame(const frame & fr)
 
         /* Convert from the frame structure to libvision structure */
         /* Encoding is CV_8UC3, for now let's act as if it is CV_8UC4 */
-        std::memcpy(img_->raw_data, fr.m_image.data, img_->data_size);
+        std::memcpy(img_->raw_data, fr.m_image.data, 3*img_->pixels);
         new_data_ = true;
     }
 }
