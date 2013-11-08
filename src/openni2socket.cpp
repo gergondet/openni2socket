@@ -50,8 +50,11 @@ void OpenNI2Socket::EncodeAndSendFrame(const frame & fr)
         }
 
         /* Convert from the frame structure to libvision structure */
-        /* FIXME Probably only works if fr.m_image is 8UC4 type */
-        std::memcpy(img_->raw_data, fr.m_image.data, img_->data_size);
+        /* Encoding is CV_8UC3 */
+        for(size_t i = 0; i < img_->pixels; ++i)
+        {
+            img_->raw_data[i] = fr.m_image.data[3*i] + (fr.m_image.data[3*i+1] << 8) + (fr.m_image.data[3*i+2] << 16);
+        }
         new_data_ = true;
     }
 }
