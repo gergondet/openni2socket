@@ -5,9 +5,6 @@ inline void rgb24_to_rgba(unsigned char * rgb24_buffer, unsigned int nb_pixels, 
     for(unsigned int i = nb_pixels; i > 0; --i)
     {
         memcpy(&(rgba_buffer[4*(i-1)]), &(rgb24_buffer[3*(i-1)]), 3);
-        rgba_buffer[4*i+3] = rgba_buffer[4*i];
-        rgba_buffer[4*i] = rgba_buffer[4*i+2];
-        rgba_buffer[4*i+2] = rgba_buffer[4*i+3];
     }
 }
 
