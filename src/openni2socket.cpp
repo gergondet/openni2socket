@@ -1,5 +1,13 @@
 #include "openni2socket.h"
 
+inline void rgb24_to_rgba(unsigned char * rgb24_buffer, unsigned int nb_pixels, unsigned char * rgba_buffer)
+{
+    for(unsigned int i = nb_pixels - 1; i >= 0; --i)
+    {
+        memcpy(&(rgba_buffer[4*i]), &(rgb24_buffer[3*i]), 3);
+    }
+}
+
 OpenNI2Socket::OpenNI2Socket(short port)
 : io_service_(), io_service_th_(0), started_(false), stopped_(false), new_data_(false), process_(io_service_, port), img_(0)
 {
@@ -25,11 +33,13 @@ void OpenNI2Socket::ThreadFunction()
 {
     while(!stopped_)
     {
-        while(!new_data_)
+        while(!new_data_ && !stopped_)
         {
             usleep(1e5);
         }
+        if(stopped_) { break; }
         boost::mutex::scoped_lock lock(work_mutex);
+        rgb24_to_rgba((unsigned char*)(img_->raw_data), img_->pixels, (unsigned char *)(img_->raw_data));
         process_.SendImage(*img_);
         new_data_ = false;
     }
@@ -50,11 +60,8 @@ void OpenNI2Socket::EncodeAndSendFrame(const frame & fr)
         }
 
         /* Convert from the frame structure to libvision structure */
-        /* Encoding is CV_8UC3 */
-        for(size_t i = 0; i < img_->pixels; ++i)
-        {
-            img_->raw_data[i] = fr.m_image.data[3*i] + (fr.m_image.data[3*i+1] << 8) + (fr.m_image.data[3*i+2] << 16);
-        }
+        /* Encoding is CV_8UC3, for now let's act as if it is CV_8UC4 */
+        std::memcpy(img_->raw_data, fr.m_image.data, img_->data_size);
         new_data_ = true;
     }
 }
